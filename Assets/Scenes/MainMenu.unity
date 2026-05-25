@@ -1231,7 +1231,7 @@ MonoBehaviour:
   _wrongIpText: {fileID: 872797705}
   _connectionErrorText: {fileID: 1976350121}
   _attempconetText: {fileID: 1044411530}
-  maxPlayers: 2
+  maxPlayers: 4
 --- !u!4 &791742010
 Transform:
   m_ObjectHideFlags: 0

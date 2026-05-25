@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using TMPro;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class MainMenuManager : MonoBehaviour
 {
