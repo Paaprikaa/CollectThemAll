@@ -6,7 +6,7 @@ public class Player : NetworkBehaviour
     public string playerName;
     public int collected;
 
-    [SerializeField] private MeshRenderer _meshRenderer;
+    private MeshRenderer _meshRenderer;
 
     private void Awake()
     {
