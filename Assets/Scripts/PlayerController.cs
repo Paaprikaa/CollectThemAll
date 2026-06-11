@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : NetworkBehaviour
 {
@@ -12,35 +13,60 @@ public class PlayerController : NetworkBehaviour
     private float _yVelocity;
     private float _gravity = -7f;
 
-
-
     [Header("Camera")]
     [SerializeField] GameObject _playerCamera;
+    private Transform _camTransform;
+
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
     }
+
     public override void OnNetworkSpawn()
     {
         _playerCamera.SetActive(IsOwner);
         GetComponent<PlayerInput>().enabled = IsOwner;
+
+        if (!IsOwner) return;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        if (IsServer)
+        {
+            NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoadComplete;
+        }
+        else
+        {
+            _camTransform = Camera.main.transform;
+        }
+    }
+
+    private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
+    {
+        if (clientId != NetworkManager.Singleton.LocalClientId) return;
+
+        _camTransform = Camera.main.transform;
+
+        NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnSceneLoadComplete;
     }
 
     private void Update()
     {
         if (!IsOwner) return;
+        if (_camTransform == null) return;
 
         Vector3 moveDirection = GetCameraRelativeDirection();
 
-        RotateCharacter();
+        RotateCharacter(moveDirection);
         moveDirection = ApplyGravity(moveDirection);
         MoveCharacter(moveDirection);
     }
 
     private Vector3 GetCameraRelativeDirection()
     {
-        Vector3 camForward = _playerCamera.transform.forward;
-        Vector3 camRight = _playerCamera.transform.right;
+        Vector3 camForward = _camTransform.transform.forward;
+        Vector3 camRight = _camTransform.transform.right;
 
         camForward.y = 0;
         camRight.y = 0;
@@ -64,27 +90,13 @@ public class PlayerController : NetworkBehaviour
         return moveDirection;
     }
 
-    private void RotateCharacter()
+    private void RotateCharacter(Vector3 moveDirection)
     {
-        Vector2 rotationInput = new Vector2(_input.x, Mathf.Max(_input.y, 0f));
-
-        if (rotationInput.magnitude <= 0.1f) return;
-
-        Vector3 camForward = _playerCamera.transform.forward;
-        Vector3 camRight = _playerCamera.transform.right;
-
-        camForward.y = 0;
-        camRight.y = 0;
-
-        camForward.Normalize();
-        camRight.Normalize();
-
-        Vector3 rotationDirection = camRight * rotationInput.x + camForward * rotationInput.y;
-
-        if (rotationDirection.magnitude <= 0.1f) return;
-
-        Quaternion targetRotation = Quaternion.LookRotation(rotationDirection, Vector3.up);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 340f * Time.deltaTime);
+        if (moveDirection.sqrMagnitude > 0.001f)
+        {
+            Quaternion toRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, 10f * Time.deltaTime);
+        }
     }
 
     private void MoveCharacter(Vector3 moveDirection)
