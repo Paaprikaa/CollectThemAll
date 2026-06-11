@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -17,6 +18,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        if (!NetworkManager.Singleton.IsServer) return;
         CollectableSpawner.Instance.SetCollectables();
     }
 

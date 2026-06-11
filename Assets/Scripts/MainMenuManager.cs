@@ -160,7 +160,7 @@ public class MainMenuManager : MonoBehaviour
             {
                 _connectionErrorText.text = $"An error has occurred";
             }
-            _goBackButton.SetActive(true);
+            if (SceneManager.GetActiveScene().name == "MainMenu") _goBackButton.SetActive(true);
         }
     }
 

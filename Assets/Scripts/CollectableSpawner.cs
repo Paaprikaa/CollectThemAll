@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class CollectableSpawner : MonoBehaviour
+public class CollectableSpawner : NetworkBehaviour
 {
     [SerializeField] private GameObject _collectable;
     [SerializeField] private List<Transform> _spawnPoints;
@@ -28,6 +29,7 @@ public class CollectableSpawner : MonoBehaviour
             foreach (Transform transform in _spawnPoints)
             {
                 GameObject obj = Instantiate(_collectable, transform.position, Quaternion.identity, gameObject.transform);
+                obj.GetComponent<NetworkObject>().Spawn();
                 _collected[obj] = false;
             }
         }
@@ -41,9 +43,15 @@ public class CollectableSpawner : MonoBehaviour
     }
 
     // calls FinishGame if all objects where collected
-    public void Collected(GameObject obj)
+    public void UpdateCollectables(NetworkObject netObj, ulong playerClientId)
     {
-        _collected[obj] = true;
+        netObj.Despawn(false);
+        netObj.gameObject.SetActive(false);
+
+        _collected[netObj.gameObject] = true;
+
+        NetworkManager.Singleton.ConnectedClients[playerClientId].PlayerObject.GetComponent<Player>().collected.Value++;
+
         if (!_collected.ContainsValue(false)) GameManager.Instance.FinishGame();
     }
 

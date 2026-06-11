@@ -4,13 +4,13 @@ using UnityEngine;
 public class Player : NetworkBehaviour
 {
     public string playerName;
-    public int collected;
+    public NetworkVariable<int> collected = new NetworkVariable<int>();
 
     private MeshRenderer _meshRenderer;
 
     private void Awake()
     {
-        collected = 0;
+        collected.Value = 0;
         _meshRenderer = GetComponent<MeshRenderer>();
     }
 

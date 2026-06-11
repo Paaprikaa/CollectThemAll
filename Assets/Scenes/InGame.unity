@@ -4265,6 +4265,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1941211689}
+  - component: {fileID: 1941211691}
   - component: {fileID: 1941211690}
   m_Layer: 0
   m_Name: CollectableSpawner
@@ -4301,11 +4302,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07fb5578c0aebec4fbaad7cfad5a5c21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectableSpawner
+  ShowTopMostFoldoutHeaderGroup: 1
   _collectable: {fileID: 6199841826379621363, guid: 85b8b1f50dba0414a900bf8b02bc5591, type: 3}
   _spawnPoints:
   - {fileID: 1497751445}
   - {fileID: 49177856}
   - {fileID: 2003718874}
+--- !u!114 &1941211691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941211688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 2385947934
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &2003718873
 GameObject:
   m_ObjectHideFlags: 0
