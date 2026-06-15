@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ public class CollectableSpawner : NetworkBehaviour
 {
     [SerializeField] private GameObject _collectable;
     [SerializeField] private List<Transform> _spawnPoints;
-    [SerializeField] private Dictionary<GameObject, bool> _collected = new Dictionary<GameObject, bool>();
+    [SerializeField] private Dictionary<ulong, CollectableData> _collectables = new Dictionary<ulong, CollectableData>();
 
     public static CollectableSpawner Instance { get; private set; }
 
@@ -24,37 +25,44 @@ public class CollectableSpawner : NetworkBehaviour
 
     public void SetCollectables()
     {
-        if (_collected.Count == 0)
+        if (_collectables.Count == 0)
         {
             foreach (Transform transform in _spawnPoints)
             {
                 GameObject obj = Instantiate(_collectable, transform.position, Quaternion.identity, gameObject.transform);
-                obj.GetComponent<NetworkObject>().Spawn();
-                _collected[obj] = false;
+                NetworkObject netObj = obj.GetComponent<NetworkObject>();
+                netObj.Spawn();
+                _collectables[netObj.NetworkObjectId] = new CollectableData { GameObject = obj, IsCollected = false };
             }
         }
         else
         {
-            foreach (var key in _collected.Keys)
+            foreach (var data in _collectables.Values)
             {
-                key.SetActive(true);
+                data.IsCollected= false;
+                data.GameObject.SetActive(true);
+                data.GameObject.GetComponent<NetworkObject>().Spawn();
             }
         }
     }
 
-    // calls FinishGame if all objects where collected
-    public void UpdateCollectables(NetworkObject netObj, ulong playerClientId)
+    public void UpdateCollectablesCarry(NetworkObject netObj, ulong playerClientId)
     {
+        // player carries
         netObj.Despawn(false);
         netObj.gameObject.SetActive(false);
+    }
 
-        _collected[netObj.gameObject] = true;
+    public void UpdateCollectables(ulong collectedId, ulong playerClientId)
+    {
+        // player collects
+        _collectables[collectedId].IsCollected = true;
 
         Player player = NetworkManager.Singleton.ConnectedClients[playerClientId].PlayerObject.GetComponent<Player>();
         player.collected.Value++;
         GameManager.Instance.UpdateCollectablesUiRpc((int)playerClientId, player.collected.Value);
 
-        if (!_collected.ContainsValue(false)) GameManager.Instance.FinishGame();
+        if (_collectables.Values.All(data => data.IsCollected)) GameManager.Instance.FinishGame();
     }
 
 }
