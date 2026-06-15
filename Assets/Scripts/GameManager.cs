@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
@@ -7,8 +8,17 @@ public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    public event Action OnMatchStarted;
+    public float timeRemaining = 300f;
+
     [SerializeField] private List<GameObject> _playerPanels = new List<GameObject>();
     [SerializeField] private TextMeshProUGUI _timer;
+
+    [SerializeField] private GameObject _buttonStartMatch;
+    [SerializeField] private GameObject _textNeedClients;
+    [SerializeField] private GameObject _textWaitHost;
+
+    public bool matchStarted { get; private set; }
 
 
     private void Awake()
@@ -20,6 +30,8 @@ public class GameManager : NetworkBehaviour
         }
 
         Instance = this;
+
+        matchStarted = false;
     }
 
     private void Start()
@@ -27,6 +39,23 @@ public class GameManager : NetworkBehaviour
         if (NetworkManager.Singleton.IsServer)
         {
             CollectableSpawner.Instance.SetCollectables();
+        }
+
+        if (IsHost) _buttonStartMatch.SetActive(true);
+        if (IsClient && !IsHost) _textWaitHost.SetActive(true);
+    }
+
+    private void Update()
+    {
+        if (!matchStarted || !IsServer) return;
+     
+        timeRemaining -= Time.deltaTime;
+        UpdateTimerRpc(timeRemaining);
+
+        if (timeRemaining <= 0)
+        {
+            matchStarted = false;
+            FinishGame();
         }
     }
 
@@ -36,9 +65,29 @@ public class GameManager : NetworkBehaviour
         _playerPanels[playerId].SetActive(true);
     }
 
-    public void FinishGame()
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    public void StartMatchRpc()
     {
-        Debug.Log("game finished"); // TODO
+        if (NetworkManager.Singleton.ConnectedClientsList.Count <= 1)
+        {
+            _textNeedClients.SetActive(true);
+            return;
+        }
+
+        _textNeedClients.SetActive(false);
+        _buttonStartMatch.SetActive(false);
+        _textWaitHost.SetActive(false);
+        matchStarted = true;
+
+        OnMatchStarted?.Invoke();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void UpdateTimerRpc(float timeRemaining)
+    {
+        int minutes = Mathf.FloorToInt(timeRemaining / 60f);
+        int seconds = Mathf.FloorToInt(timeRemaining % 60f);
+        _timer.text = $"{minutes}:{seconds:00}";
     }
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
@@ -46,5 +95,10 @@ public class GameManager : NetworkBehaviour
     {
         TextMeshProUGUI textCollectables = _playerPanels[playerId].GetComponentInChildren<TextMeshProUGUI>();
         if (textCollectables != null) textCollectables.text = "Player " + (playerId + 1) + ": " + collected;
+    }
+
+    public void FinishGame()
+    {
+        Debug.Log("game finished"); // TODO
     }
 }

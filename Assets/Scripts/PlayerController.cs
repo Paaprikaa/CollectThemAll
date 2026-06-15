@@ -29,9 +29,6 @@ public class PlayerController : NetworkBehaviour
 
         if (!IsOwner) return;
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
         if (IsServer)
         {
             NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoadComplete;
@@ -42,11 +39,21 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    public void LockCursor()
+    {
+        if (!IsOwner) return;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
     private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
     {
         if (clientId != NetworkManager.Singleton.LocalClientId) return;
 
         _camTransform = Camera.main.transform;
+
+        GameManager.Instance.OnMatchStarted += LockCursor;
 
         NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnSceneLoadComplete;
     }

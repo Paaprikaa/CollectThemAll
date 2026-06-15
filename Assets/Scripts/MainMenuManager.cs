@@ -168,15 +168,20 @@ public class MainMenuManager : MonoBehaviour
     {
         int currentPlayers = NetworkManager.Singleton.ConnectedClients.Count;
 
-        if (currentPlayers < maxPlayers )
-        {
-            response.Approved = true;
-            response.CreatePlayerObject = true;
-        }
-        else
+        if (currentPlayers >= maxPlayers)
         {
             response.Approved = false;
             response.Reason = $"Room is full (max {maxPlayers} players).";
+        }
+        else if (GameManager.Instance != null && GameManager.Instance.matchStarted)
+        {
+            response.Approved = false;
+            response.Reason = "Match already started.";
+        }
+        else
+        {
+            response.Approved = true;
+            response.CreatePlayerObject = true;
         }
     }
 
