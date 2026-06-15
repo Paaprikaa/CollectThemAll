@@ -20,6 +20,8 @@ public class CollectableTrigger : NetworkBehaviour
     private void CollectRpc(ulong collectedId, ulong playerClientId)
     {
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(collectedId, out NetworkObject netObj))
+        {
             CollectableSpawner.Instance.UpdateCollectables(netObj, playerClientId);
+        }
     }
 }

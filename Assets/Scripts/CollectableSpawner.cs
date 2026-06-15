@@ -50,7 +50,9 @@ public class CollectableSpawner : NetworkBehaviour
 
         _collected[netObj.gameObject] = true;
 
-        NetworkManager.Singleton.ConnectedClients[playerClientId].PlayerObject.GetComponent<Player>().collected.Value++;
+        Player player = NetworkManager.Singleton.ConnectedClients[playerClientId].PlayerObject.GetComponent<Player>();
+        player.collected.Value++;
+        GameManager.Instance.UpdateCollectablesUiRpc((int)playerClientId, player.collected.Value);
 
         if (!_collected.ContainsValue(false)) GameManager.Instance.FinishGame();
     }

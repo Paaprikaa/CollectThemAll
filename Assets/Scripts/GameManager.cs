@@ -40,4 +40,11 @@ public class GameManager : NetworkBehaviour
     {
         Debug.Log("game finished"); // TODO
     }
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
+    public void UpdateCollectablesUiRpc(int playerId, int collected)
+    {
+        TextMeshProUGUI textCollectables = _playerPanels[playerId].GetComponentInChildren<TextMeshProUGUI>();
+        if (textCollectables != null) textCollectables.text = "Player " + (playerId + 1) + ": " + collected;
+    }
 }
