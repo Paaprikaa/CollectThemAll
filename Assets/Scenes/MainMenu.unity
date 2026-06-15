@@ -1302,9 +1302,9 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 60
   m_MinHeight: 350
-  m_PreferredWidth: 100
+  m_PreferredWidth: -1
   m_PreferredHeight: 600
-  m_FlexibleWidth: -1
+  m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
 --- !u!114 &808601316
@@ -1417,7 +1417,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 150
+  m_fontSize: 115.55
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -3859,9 +3859,9 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 300
   m_MinHeight: 350
-  m_PreferredWidth: 1200
+  m_PreferredWidth: -1
   m_PreferredHeight: 600
-  m_FlexibleWidth: -1
+  m_FlexibleWidth: 4
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
 --- !u!1 &1864047997
