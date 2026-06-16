@@ -4,15 +4,28 @@ using UnityEngine.InputSystem;
 
 public class CarryTrigger : NetworkBehaviour
 {
+    [SerializeField] private GameObject _pressE;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        _pressE.SetActive(true);
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        _pressE.SetActive(false);
+    }
+
     private void OnTriggerStay(Collider other)
     {
         if (!IsSpawned) return;
 
         NetworkObject playerNetObj = other.GetComponent<NetworkObject>();
+        Player player = other.GetComponent<Player>();
         if (playerNetObj == null) return;
-        if (Keyboard.current.eKey.isPressed && playerNetObj.IsOwner)
+        if (Keyboard.current.eKey.isPressed && playerNetObj.IsOwner && player.carriedCollectableId == ulong.MaxValue)
         {
-            other.GetComponent<Player>()?.Carry(NetworkObjectId);
+            player.Carry(NetworkObjectId);
             CarryRpc(NetworkObjectId, playerNetObj.OwnerClientId);
         }
     }

@@ -4,6 +4,18 @@ using UnityEngine.InputSystem;
 
 public class CollectTrigger : NetworkBehaviour
 {
+    [SerializeField] private GameObject _pressE;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        _pressE.SetActive(true);
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        _pressE.SetActive(false);
+
+    }
     private void OnTriggerStay(Collider other)
     {
         if (!IsSpawned) return;
