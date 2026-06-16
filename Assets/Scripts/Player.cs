@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,6 +9,7 @@ public class Player : NetworkBehaviour
     public NetworkVariable<int> collected = new NetworkVariable<int>();
     public ulong carriedCollectableId { get; private set; }
     [SerializeField] private GameObject _collectablePrefabCarry;
+    [SerializeField] private List<Material> _playerColors;
 
     private MeshRenderer _meshRenderer;
 
@@ -21,7 +23,11 @@ public class Player : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        _meshRenderer.material.SetColor("_BaseColor", PlayerColors.playerListColors[(int)OwnerClientId]);
+        foreach (MeshRenderer renderer in GetComponentsInChildren<MeshRenderer>())
+        {
+            renderer.material = _playerColors[(int)OwnerClientId];
+        }
+
         NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoadComplete;
     }
 
