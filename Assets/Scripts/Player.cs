@@ -11,13 +11,10 @@ public class Player : NetworkBehaviour
     [SerializeField] private GameObject _collectablePrefabCarry;
     [SerializeField] private List<Material> _playerColors;
 
-    private MeshRenderer _meshRenderer;
-
     private void Awake()
     {
         collected.Value = 0;
         carriedCollectableId = ulong.MaxValue;
-        _meshRenderer = GetComponent<MeshRenderer>();
         _collectablePrefabCarry.SetActive(false);
     }
 
@@ -29,6 +26,8 @@ public class Player : NetworkBehaviour
         }
 
         NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoadComplete;
+
+        playerName = SessionData.Instance.PlayerNames[OwnerClientId];
     }
 
     private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)

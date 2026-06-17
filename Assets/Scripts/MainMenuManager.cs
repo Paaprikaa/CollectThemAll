@@ -1,23 +1,30 @@
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro;
 
 public class MainMenuManager : MonoBehaviour
 {
     [SerializeField] private GameObject _mainMenu;
     [SerializeField] private GameObject _connecting;
-    [SerializeField] private GameObject _hostPanel;
-    [SerializeField] private GameObject _clientPanel;
     [SerializeField] private GameObject _panel;
     [SerializeField] private GameObject _goBackButton;
-    [SerializeField] private TMP_InputField _ipInputField;
-    [SerializeField] private TextMeshProUGUI _yourIpText;
-    [SerializeField] private TextMeshProUGUI _wrongIpText;
     [SerializeField] private TextMeshProUGUI _connectionErrorText;
     [SerializeField] private TextMeshProUGUI _attempconetText;
+
+    [Header("Host Panel")]
+    [SerializeField] private GameObject _hostPanel;
+    [SerializeField] private TextMeshProUGUI _yourIpText;
+    [SerializeField] private TMP_InputField _hostNameInputField;
+    [SerializeField] private TextMeshProUGUI _hostErrorText;
+
+    [Header("Client Panel")]
+    [SerializeField] private GameObject _clientPanel;
+    [SerializeField] private TMP_InputField _clientNameInputField;
+    [SerializeField] private TMP_InputField _ipInputField;
+    [SerializeField] private TextMeshProUGUI _clientErrorText;
 
     public int maxPlayers = 2;
 
@@ -81,6 +88,16 @@ public class MainMenuManager : MonoBehaviour
 
     public void CreateRoom()
     {
+        string playerName = _hostNameInputField.text.Trim();
+
+        if (string.IsNullOrEmpty(playerName))
+        {
+            _hostErrorText.text = "*Please choose a name.";
+            return;
+        }
+
+        NetworkManager.Singleton.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(playerName);
+
         transport.SetConnectionData("0.0.0.0", 7777);
         NetworkManager.Singleton.ConnectionApprovalCallback = ApproveConnection;
 
@@ -97,22 +114,30 @@ public class MainMenuManager : MonoBehaviour
     public void JoinRoom()
     {
         string ip = _ipInputField.text.Trim();
+        string playerName = _clientNameInputField.text.Trim();
 
-        if (string.IsNullOrEmpty(ip))
+        if (string.IsNullOrEmpty(playerName))
         {
-            _wrongIpText.text = "You need to enter an IP address.";
+            _clientErrorText.text = "*Please choose a name.";
             return;
         }
-        if (!System.Net.IPAddress.TryParse(ip, out _))
+        else if (string.IsNullOrEmpty(ip))
         {
-            _wrongIpText.text = "Invalid IP format.";
+            _clientErrorText.text = "*You need to enter an IP address.";
+            return;
+        }
+        else if (!System.Net.IPAddress.TryParse(ip, out _))
+        {
+            _clientErrorText.text = "*Invalid IP format.";
             return;
         }
 
         transport.SetConnectionData(ip, 7777);
 
+        NetworkManager.Singleton.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(playerName);
 
         NetworkManager.Singleton.StartClient();
+
         _mainMenu.SetActive(false);
         _connecting.SetActive(true);
         _attempconetText.text = $"Attempting to connect to: {ip}";
@@ -127,7 +152,7 @@ public class MainMenuManager : MonoBehaviour
         _connecting.SetActive(false);
         _goBackButton.SetActive(false);
         _ipInputField.text = "";
-        _wrongIpText.text = "";
+        _clientErrorText.text = "";
         _connectionErrorText.text = "Please wait :)";
         _attempconetText.text = "";
     }
@@ -182,6 +207,8 @@ public class MainMenuManager : MonoBehaviour
         {
             response.Approved = true;
             response.CreatePlayerObject = true;
+
+            SessionData.Instance.PlayerNames[request.ClientNetworkId] = System.Text.Encoding.UTF8.GetString(request.Payload);
         }
     }
 

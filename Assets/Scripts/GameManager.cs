@@ -65,6 +65,9 @@ public class GameManager : NetworkBehaviour
     public void PlayerEnterRpc(int playerId)
     {
         _playerPanels[playerId].SetActive(true);
+
+        TextMeshProUGUI textCollectables = _playerPanels[playerId].GetComponentInChildren<TextMeshProUGUI>();
+        if (textCollectables != null) textCollectables.text = SessionData.Instance.PlayerNames[(ulong)playerId] + ": " + 0;
     }
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
@@ -98,7 +101,7 @@ public class GameManager : NetworkBehaviour
     public void UpdateCollectablesUiRpc(int playerId, int collected)
     {
         TextMeshProUGUI textCollectables = _playerPanels[playerId].GetComponentInChildren<TextMeshProUGUI>();
-        if (textCollectables != null) textCollectables.text = "Player " + (playerId + 1) + ": " + collected;
+        if (textCollectables != null) textCollectables.text = SessionData.Instance.PlayerNames[(ulong)playerId] + ": " + collected;
     }
 
     public void FinishGame()
