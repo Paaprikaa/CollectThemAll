@@ -17,6 +17,8 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private GameObject _buttonStartMatch;
     [SerializeField] private GameObject _textNeedClients;
     [SerializeField] private GameObject _textWaitHost;
+    
+    [SerializeField] private GameObject _initialWalls;
 
     public bool matchStarted { get; private set; }
 
@@ -77,6 +79,8 @@ public class GameManager : NetworkBehaviour
         _textNeedClients.SetActive(false);
         _buttonStartMatch.SetActive(false);
         _textWaitHost.SetActive(false);
+        _initialWalls.SetActive(false);
+
         matchStarted = true;
 
         OnMatchStarted?.Invoke();
