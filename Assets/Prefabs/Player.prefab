@@ -93,7 +93,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.28
-  m_Height: 1.27
+  m_Height: 0.96
   m_Direction: 1
   m_Center: {x: 0, y: -0.63, z: 0}
 --- !u!143 &5108756141135409034
@@ -114,7 +114,7 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 1.04
+  m_Height: 0.96
   m_Radius: 0.28
   m_SlopeLimit: 45
   m_StepOffset: 0.3
@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1425202248
+  GlobalObjectIdHash: 3879151694
   InScenePlacedSourceGlobalObjectIdHash: 3879151694
   DeferredDespawnTick: 0
   Ownership: 1
@@ -646,6 +646,7 @@ MonoBehaviour:
   _rotationAxis: {x: 0, y: 1, z: 0}
   _oscillationHeight: 0.1
   _oscillationSpeed: 1.5
+  _startPosition: {x: 0, y: 0, z: 0}
 --- !u!1001 &6022376842580931821
 PrefabInstance:
   m_ObjectHideFlags: 0

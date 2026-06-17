@@ -10,18 +10,16 @@ public class CollectableAnimation : MonoBehaviour
     [SerializeField] private float _oscillationHeight = 0.3f;
     [SerializeField] private float _oscillationSpeed = 1f;
 
-    private Vector3 _startPosition;
-
-    private void Start()
-    {
-        _startPosition = transform.position;
-    }
 
     private void Update()
     {
         transform.Rotate(_rotationAxis, _rotationSpeed * Time.deltaTime);
 
-        float newY = _startPosition.y + Mathf.Sin(Time.time * _oscillationSpeed) * _oscillationHeight;
-        transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+        float oscillation = Mathf.Sin(Time.time * _oscillationSpeed) * _oscillationHeight;
+        transform.localPosition = new Vector3(
+            transform.localPosition.x,
+            transform.localPosition.y + oscillation * Time.deltaTime,
+            transform.localPosition.z
+        );
     }
 }
