@@ -1,11 +1,14 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
+using static UnityEditor.FilePathAttribute;
 
 public class Player : NetworkBehaviour
 {
-    public string playerName;
     public NetworkVariable<int> collected = new NetworkVariable<int>();
     public ulong carriedCollectableId { get; private set; }
     [SerializeField] private GameObject _collectablePrefabCarry;
@@ -27,23 +30,40 @@ public class Player : NetworkBehaviour
 
         NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoadComplete;
 
-        playerName = SessionData.Instance.PlayerNames[OwnerClientId];
     }
 
     private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
     {
         if (!IsServer) return;
 
-        GameManager.Instance.PlayerEnterRpc((int)clientId);
+        int spawnIndex = (int)OwnerClientId;
+        Vector3 spawnPos = GameManager.Instance.playerSpawnPoints[spawnIndex].position;
+        Quaternion spawnRot = GameManager.Instance.playerSpawnPoints[spawnIndex].rotation;
+        SetSpawnPointRpc(spawnPos, spawnRot);
+
+        GameManager.Instance.PlayerEnterRpc((int)clientId, SessionData.Instance.PlayerNames[clientId]);
 
         foreach (var connectedClient in NetworkManager.Singleton.ConnectedClients.Values)
         {
             int connectedPlayerId = (int)connectedClient.PlayerObject.GetComponent<Player>().OwnerClientId;
 
-            if (connectedPlayerId != (int)OwnerClientId) GameManager.Instance.PlayerEnterRpc(connectedPlayerId);
+            if (connectedPlayerId != (int)OwnerClientId) GameManager.Instance.PlayerEnterRpc(connectedPlayerId, SessionData.Instance.PlayerNames[(ulong)connectedPlayerId]);
         }
 
         NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnSceneLoadComplete;
+    }
+
+    [Rpc(SendTo.Owner)]
+    private void SetSpawnPointRpc(Vector3 position, Quaternion rotation)
+    {
+        StartCoroutine(ApplySpawnPoint(position, rotation));
+    }
+
+    private IEnumerator ApplySpawnPoint(Vector3 position, Quaternion rotation)
+    {
+        yield return null; // wait one frame for Netcode to finish syncing
+        transform.position = position;
+        transform.rotation = rotation;
     }
 
     public void Carry(ulong collectedId)

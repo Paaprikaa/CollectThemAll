@@ -10,6 +10,7 @@ public class GameManager : NetworkBehaviour
 
     public event Action OnMatchStarted;
     public float timeRemaining = 300f;
+    public List<Transform> playerSpawnPoints = new List<Transform>();
 
     [SerializeField] private List<GameObject> _playerPanels = new List<GameObject>();
     [SerializeField] private TextMeshProUGUI _timer;
@@ -62,12 +63,14 @@ public class GameManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
-    public void PlayerEnterRpc(int playerId)
+    public void PlayerEnterRpc(int playerId, string playerName)
     {
         _playerPanels[playerId].SetActive(true);
 
+        SessionData.Instance.PlayerNames[(ulong)playerId] = playerName;
+
         TextMeshProUGUI textCollectables = _playerPanels[playerId].GetComponentInChildren<TextMeshProUGUI>();
-        if (textCollectables != null) textCollectables.text = SessionData.Instance.PlayerNames[(ulong)playerId] + ": " + 0;
+        if (textCollectables != null) textCollectables.text = playerName + ": " + 0;
     }
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
