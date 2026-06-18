@@ -37,11 +37,17 @@ public class CollectableSpawner : NetworkBehaviour
         }
         else
         {
-            foreach (var data in _collectables.Values)
+            // rebuild dictionary with new NetworkObjectIds
+            List<CollectableData> existingData = _collectables.Values.ToList();
+            _collectables.Clear();
+
+            foreach (var data in existingData)
             {
-                data.IsCollected= false;
+                data.IsCollected = false;
                 data.GameObject.SetActive(true);
-                data.GameObject.GetComponent<NetworkObject>().Spawn();
+                NetworkObject netObj = data.GameObject.GetComponent<NetworkObject>();
+                netObj.Spawn();
+                _collectables[netObj.NetworkObjectId] = data;
             }
         }
     }

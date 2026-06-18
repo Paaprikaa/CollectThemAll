@@ -47,6 +47,14 @@ public class PlayerController : NetworkBehaviour
         Cursor.visible = false;
     }
 
+    public void UnLockCursor()
+    {
+        if (!IsOwner) return;
+
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
+    }
+
     private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
     {
         if (clientId != NetworkManager.Singleton.LocalClientId) return;
@@ -54,6 +62,7 @@ public class PlayerController : NetworkBehaviour
         _camTransform = Camera.main.transform;
 
         GameManager.Instance.OnMatchStarted += LockCursor;
+        GameManager.Instance.OnMatchFinished += UnLockCursor;
 
         NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnSceneLoadComplete;
     }

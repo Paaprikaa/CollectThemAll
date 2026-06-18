@@ -6,7 +6,8 @@ using UnityEngine.SceneManagement;
 
 public class Player : NetworkBehaviour
 {
-    public NetworkVariable<int> collected = new NetworkVariable<int>();
+    public NetworkVariable<int> collected = new();
+    public NetworkVariable<bool> isReady = new();
     public ulong carriedCollectableId { get; private set; }
     [SerializeField] private GameObject _collectablePrefabCarry;
     [SerializeField] private List<Material> _playerColors;
@@ -26,7 +27,6 @@ public class Player : NetworkBehaviour
         }
 
         NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoadComplete;
-
     }
 
     private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
@@ -51,7 +51,7 @@ public class Player : NetworkBehaviour
     }
 
     [Rpc(SendTo.Owner)]
-    private void SetSpawnPointRpc(Vector3 position, Quaternion rotation)
+    public void SetSpawnPointRpc(Vector3 position, Quaternion rotation)
     {
         StartCoroutine(ApplySpawnPoint(position, rotation));
     }

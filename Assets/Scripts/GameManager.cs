@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using Unity.Netcode;
-using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
 
     public event Action OnMatchStarted;
+    public event Action OnMatchFinished;
     public float timeRemaining = 300f;
     public List<Transform> playerSpawnPoints = new List<Transform>();
 
@@ -26,7 +27,9 @@ public class GameManager : NetworkBehaviour
 
     [Header("End UI")]
     [SerializeField] private GameObject _endGamePanel;
+    [SerializeField] private GameObject _endGameButtons;
     [SerializeField] private TextMeshProUGUI _endGameResultText;
+    [SerializeField] private GameObject _endGameConfirmedText;
 
     public bool matchStarted { get; private set; }
 
@@ -53,6 +56,17 @@ public class GameManager : NetworkBehaviour
         if (IsHost) _buttonStartMatch.SetActive(true);
         if (IsClient && !IsHost) _textWaitHost.SetActive(true);
     }
+
+    private void OnEnable()
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+    }
+
+    private void OnDisable()
+    {
+        if (NetworkManager.Singleton != null) NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
+    }
+
 
     private void Update()
     {
@@ -120,8 +134,11 @@ public class GameManager : NetworkBehaviour
         Dictionary<ulong, int> playerPoints = new();
         foreach (var connectedClient in NetworkManager.Singleton.ConnectedClients.Values)
         {
-            int points = (int)connectedClient.PlayerObject.GetComponent<Player>().collected.Value;
+            Player player = connectedClient.PlayerObject.GetComponent<Player>();
+            int points = player.collected.Value;
             playerPoints[connectedClient.ClientId] = points;
+
+            player.isReady.Value = false;
         }
 
         int maxValue = playerPoints.Values.Max();
@@ -137,6 +154,8 @@ public class GameManager : NetworkBehaviour
             resultText = "Draw, max points: " + maxValue + "\nWant a rematch?";
         }
 
+        OnMatchFinished?.Invoke();
+
         FinishGameRpc(resultText);
     }
 
@@ -148,7 +167,97 @@ public class GameManager : NetworkBehaviour
         _endGameResultText.text = resultText;
     }
 
-    public void GoMainMenu() { Debug.Log("mainmenuuuu"); }
+    public void GoMainMenu()
+    {
+        if (IsServer)
+        {
+            GoMainMenuRpc();
+        }
+        else
+        {
+            LeaveGame();
+        }
+    }
 
-    public void PlayAgain() { Debug.Log("playagainnn"); }
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    private void GoMainMenuRpc()
+    {
+        LeaveGame(); // disconnect all
+    }
+
+    private void LeaveGame()
+    {
+        NetworkManager.Singleton.Shutdown();
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void PlayAgain()
+    {
+        _endGameButtons.SetActive(false);
+        _endGameConfirmedText.SetActive(true);
+
+        RequestPlayAgainRpc();
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestPlayAgainRpc(RpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<Player>().isReady.Value = true;
+
+        bool allReady = true;
+        foreach (var client in NetworkManager.Singleton.ConnectedClients.Values)
+        {
+            allReady = allReady && client.PlayerObject.GetComponent<Player>().isReady.Value;
+        }
+
+        if (allReady) ResetGameRpc();
+    }
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    private void ResetGameRpc()
+    {
+        // restart endgame ui
+        _endGameButtons.SetActive(true);
+        _endGameConfirmedText.SetActive(false);
+        _endGamePanel.SetActive(false);
+
+        // restart waiting room UI
+        if (IsHost) _buttonStartMatch.SetActive(true);
+        if (IsClient && !IsHost) _textWaitHost.SetActive(true);
+
+        if (!IsServer) return;
+
+        // restart collectables
+        CollectableSpawner.Instance.SetCollectables();
+
+        foreach (var client in NetworkManager.Singleton.ConnectedClients.Values)
+        {
+            Player player = client.PlayerObject.GetComponent<Player>();
+            player.isReady.Value = false;
+            // restart points
+            player.collected.Value = 0;
+            // restart match UI
+            UpdateCollectablesUiRpc((int)client.ClientId, player.collected.Value);
+
+            //TODO: implement this
+            // reastart positions
+            //Vector3 spawnPos = playerSpawnPoints[(int)client.ClientId].position;
+            //Quaternion spawnRot = playerSpawnPoints[(int)client.ClientId].rotation;
+            //player.SetSpawnPointRpc(spawnPos, spawnRot,false);
+        }
+
+        //TODO: activate when spawn points solved
+        //_initialWalls.SetActive(true);
+
+        // restart timer
+        timeRemaining = 300f;
+    }
+
+
+    private void OnClientDisconnected(ulong clientId)
+    {
+        _playerPanels[(int)clientId].SetActive(false);
+        SessionData.Instance.PlayerNames.Remove(clientId);
+    }
 }
