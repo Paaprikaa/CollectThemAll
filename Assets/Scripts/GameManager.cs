@@ -12,8 +12,10 @@ public class GameManager : NetworkBehaviour
 
     public event Action OnMatchStarted;
     public event Action OnMatchFinished;
-    public float timeRemaining = 300f;
+    public float matchTime = 300f;
     public List<Transform> playerSpawnPoints = new List<Transform>();
+
+    private float _timeRemaining = 300f;
 
     [Header("InGame UI")]
     [SerializeField] private List<GameObject> _playerPanels = new List<GameObject>();
@@ -43,6 +45,7 @@ public class GameManager : NetworkBehaviour
 
         Instance = this;
 
+        _timeRemaining = matchTime;
         matchStarted = false;
     }
 
@@ -72,10 +75,10 @@ public class GameManager : NetworkBehaviour
     {
         if (!matchStarted || !IsServer) return;
 
-        timeRemaining -= Time.deltaTime;
-        UpdateTimerRpc(timeRemaining);
+        _timeRemaining -= Time.deltaTime;
+        UpdateTimerRpc(_timeRemaining);
 
-        if (timeRemaining <= 0)
+        if (_timeRemaining <= 0)
         {
             matchStarted = false;
             FinishGame();
@@ -203,6 +206,7 @@ public class GameManager : NetworkBehaviour
     public void RequestPlayAgainRpc(RpcParams rpcParams = default)
     {
         ulong clientId = rpcParams.Receive.SenderClientId;
+        Debug.Log($"RequestPlayAgainRpc - senderClientId: {clientId}");
         NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<Player>().isReady.Value = true;
 
         bool allReady = true;
@@ -240,18 +244,16 @@ public class GameManager : NetworkBehaviour
             // restart match UI
             UpdateCollectablesUiRpc((int)client.ClientId, player.collected.Value);
 
-            //TODO: implement this
-            // reastart positions
-            //Vector3 spawnPos = playerSpawnPoints[(int)client.ClientId].position;
-            //Quaternion spawnRot = playerSpawnPoints[(int)client.ClientId].rotation;
-            //player.SetSpawnPointRpc(spawnPos, spawnRot,false);
+            // restart positions
+            Vector3 spawnPos = playerSpawnPoints[(int)client.ClientId].position;
+            Quaternion spawnRot = playerSpawnPoints[(int)client.ClientId].rotation;
+            player.SetSpawnPointRpc(spawnPos, spawnRot);
         }
 
-        //TODO: activate when spawn points solved
-        //_initialWalls.SetActive(true);
+        _initialWalls.SetActive(true);
 
         // restart timer
-        timeRemaining = 300f;
+        _timeRemaining = matchTime;
     }
 
 

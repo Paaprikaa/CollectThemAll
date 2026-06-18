@@ -117,6 +117,7 @@ public class PlayerController : NetworkBehaviour
 
     private void MoveCharacter(Vector3 moveDirection)
     {
+        if (!_characterController.enabled) return;
         _characterController.Move(moveDirection * _speed * Time.deltaTime);
     }
 

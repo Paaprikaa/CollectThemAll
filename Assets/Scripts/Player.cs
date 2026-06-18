@@ -11,6 +11,7 @@ public class Player : NetworkBehaviour
     public ulong carriedCollectableId { get; private set; }
     [SerializeField] private GameObject _collectablePrefabCarry;
     [SerializeField] private List<Material> _playerColors;
+    private CharacterController _characterController;
 
     private void Awake()
     {
@@ -25,6 +26,7 @@ public class Player : NetworkBehaviour
         {
             renderer.material = _playerColors[(int)OwnerClientId];
         }
+        _characterController = GetComponent<CharacterController>();
 
         NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoadComplete;
     }
@@ -58,9 +60,12 @@ public class Player : NetworkBehaviour
 
     private IEnumerator ApplySpawnPoint(Vector3 position, Quaternion rotation)
     {
-        yield return null; // wait one frame for Netcode to finish syncing
+        // character controller race condition problem
+        _characterController.enabled = false;
         transform.position = position;
         transform.rotation = rotation;
+        yield return null;
+        _characterController.enabled = true;
     }
 
     public void Carry(ulong collectedId)
