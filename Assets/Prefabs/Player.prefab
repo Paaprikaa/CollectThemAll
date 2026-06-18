@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2155757634
+  GlobalObjectIdHash: 545784549
   InScenePlacedSourceGlobalObjectIdHash: 3879151694
   DeferredDespawnTick: 0
   Ownership: 1
@@ -297,7 +297,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9192104046012153015}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.30550978, y: 0.007945776, z: -0.0025495, w: 0.9521524}
+  m_LocalRotation: {x: 0.33108738, y: 5.622823e-10, z: -1.9102278e-10, w: 0.9436001}
   m_LocalPosition: {x: 0, y: 0.50397015, z: -2.854775}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -574,7 +574,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ba4d7bb0edd99e34a884314a7970d285, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.3
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ba4d7bb0edd99e34a884314a7970d285, type: 3}
       propertyPath: m_LocalPosition.z
