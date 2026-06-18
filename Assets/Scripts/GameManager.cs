@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.Netcode;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class GameManager : NetworkBehaviour
@@ -12,17 +14,21 @@ public class GameManager : NetworkBehaviour
     public float timeRemaining = 300f;
     public List<Transform> playerSpawnPoints = new List<Transform>();
 
+    [Header("InGame UI")]
     [SerializeField] private List<GameObject> _playerPanels = new List<GameObject>();
     [SerializeField] private TextMeshProUGUI _timer;
 
+    [Header("Pre-Match UI")]
     [SerializeField] private GameObject _buttonStartMatch;
     [SerializeField] private GameObject _textNeedClients;
     [SerializeField] private GameObject _textWaitHost;
-    
     [SerializeField] private GameObject _initialWalls;
 
-    public bool matchStarted { get; private set; }
+    [Header("End UI")]
+    [SerializeField] private GameObject _endGamePanel;
+    [SerializeField] private TextMeshProUGUI _endGameResultText;
 
+    public bool matchStarted { get; private set; }
 
     private void Awake()
     {
@@ -51,7 +57,7 @@ public class GameManager : NetworkBehaviour
     private void Update()
     {
         if (!matchStarted || !IsServer) return;
-     
+
         timeRemaining -= Time.deltaTime;
         UpdateTimerRpc(timeRemaining);
 
@@ -109,6 +115,40 @@ public class GameManager : NetworkBehaviour
 
     public void FinishGame()
     {
-        Debug.Log("game finished"); // TODO
+        if (!IsServer) return;
+
+        Dictionary<ulong, int> playerPoints = new();
+        foreach (var connectedClient in NetworkManager.Singleton.ConnectedClients.Values)
+        {
+            int points = (int)connectedClient.PlayerObject.GetComponent<Player>().collected.Value;
+            playerPoints[connectedClient.ClientId] = points;
+        }
+
+        int maxValue = playerPoints.Values.Max();
+        var topPlayers = playerPoints.Where(kvp => kvp.Value == maxValue).Select(kvp => kvp.Key).ToList();
+
+        string resultText;
+        if (topPlayers.Count == 1)
+        {
+            resultText = SessionData.Instance.PlayerNames[topPlayers[0]] + " wins with " + maxValue + " points!";
+        }
+        else
+        {
+            resultText = "Draw, max points: " + maxValue + "\nWant a rematch?";
+        }
+
+        FinishGameRpc(resultText);
     }
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    public void FinishGameRpc(string resultText)
+    {
+        matchStarted = false;
+        _endGamePanel.SetActive(true);
+        _endGameResultText.text = resultText;
+    }
+
+    public void GoMainMenu() { Debug.Log("mainmenuuuu"); }
+
+    public void PlayAgain() { Debug.Log("playagainnn"); }
 }

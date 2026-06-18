@@ -1,11 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
-using static UnityEditor.FilePathAttribute;
 
 public class Player : NetworkBehaviour
 {
